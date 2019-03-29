@@ -1,30 +1,72 @@
 'use strict';
 
 const { RTMClient } = require('@slack/rtm-api');
+const { WebClient, ErrorCode } = require('@slack/web-api');
 
 const brianUserId = 'U5RPJQ1FY';
 const tomUserId = 'U5R2JKMHB';
+
+const {Wit, log} = require('node-wit');
+
+const client = new Wit({
+  accessToken: 'QJMFKIBEQIVPBIF7YTVRAXIUP72HJVLE',
+  logger: new log.Logger(log.DEBUG) // optional
+});
+
 module.exports.init = function slackClient(token, logLevel) {
     const rtm = new RTMClient(token, {logLevel});
+    const web = new WebClient(token);
     
     rtm.on('user_typing', async (event) => {
-        console.log(event);
-        if(event.user === tomUserId) {
-            const res = await rtm.sendMessage(`I see you typing Brian`, event.channel);
-            console.log('message sent: ', res.ts);
-        }
+        // console.log(event);
+        // if(event.user === brianUserId) {
+        //     const res = await rtm.sendMessage(`I see you typing Brian`, event.channel);
+        //     console.log('message sent: ', res.ts);
+        // }
     });
 
     rtm.on('message', async (event) => {
-        console.log(event);
-        const {content, channel, subtitle} = event;
-        const author = subtitle;
+        const {text, channel, user} = event;
         await rtm.sendTyping(channel);
         // Send content to wai.ai
-        await (new Promise((resolve) => setTimeout(resolve, 1000)));
+        const witResponse = await client.message(text.toLowerCase(), {});
+        const userInfo = await web.users.info({ user });
+        const userFirstName = userInfo.user.profile.first_name;
+        console.log('user', userInfo.user);
+        let responseText = null;
+        if(witResponse.entities.greetings && witResponse.entities.greetings[0].confidence > 0.8) {
+            responseText = `Hello ${userFirstName}`;
+        }
+
+        if(witResponse.entities.bye && witResponse.entities.bye[0].confidence > 0.8) {
+            responseText = `Goodbye ${userFirstName}`;
+        }
+
+        if(witResponse.entities.intent && witResponse.entities.intent[0].confidence > 0.6 && witResponse.entities.intent[0].value === 'insult') {
+            responseText = `Well, that's not nice, ${userFirstName}.`;
+        }
+
+        // if(witResponse.entities.sentiment && 
+        //     witResponse.entities.sentiment[0].confidence > 0.7 && 
+        //     witResponse.entities.sentiment[0].value === 'negative' && 
+        //     (witResponse.entities.contact[0].value === 'thomas' || 
+        //     witResponse.entities.contact[0].value === 'tom')) {
+        //     responseText = `Don't talk about my creator that way ${userFirstName}. You wouldn't like me when I'm angry`;
+        // }
+
+        if(!responseText && witResponse.entities.sentiment && witResponse.entities.sentiment[0].confidence > 0.7 && witResponse.entities.sentiment[0].value === 'negative') {
+            responseText = `I hear you. Sometimes life is hard`;
+        }
+
+        if(!responseText && witResponse.entities.sentiment && witResponse.entities.sentiment[0].confidence > 0.7 && witResponse.entities.sentiment[0].value === 'positive') {
+            responseText = `I'm glad you're having a good day. Fuck you.`;
+        }
+
         // Reply
-        const res = await rtm.sendMessage(`Message Received`, channel);
-        console.log('message sent: ', res.ts);
+        if(responseText) {
+            const res = await rtm.sendMessage(responseText, channel);
+            console.log('message sent: ', res.ts);
+        }
     });
     return rtm;
 };
