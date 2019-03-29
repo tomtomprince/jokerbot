@@ -1,0 +1,21 @@
+{
+  "name": "speech",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/events-api": "^2.2.0",
+    "@slack/rtm-api": "^5.0.0",
+    "@slack/web-api": "^5.0.0",
+    "apiai": "4.0.3",
+    "express": "4.16.4",
+    "node-wit": "5.0.0",
+    "socket.io": "2.2.0"
+  }
+}
