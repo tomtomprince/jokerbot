@@ -1,4 +1,5 @@
 'use strict';
+require('dotenv').config();
 
 const { RTMClient } = require('@slack/rtm-api');
 const { WebClient, ErrorCode } = require('@slack/web-api');
@@ -9,21 +10,13 @@ const tomUserId = 'U5R2JKMHB';
 const {Wit, log} = require('node-wit');
 
 const client = new Wit({
-  accessToken: 'QJMFKIBEQIVPBIF7YTVRAXIUP72HJVLE',
+  accessToken: process.env.WIT_TOKEN,
   logger: new log.Logger(log.DEBUG) // optional
 });
 
 module.exports.init = function slackClient(token, logLevel) {
     const rtm = new RTMClient(token, {logLevel});
     const web = new WebClient(token);
-    
-    rtm.on('user_typing', async (event) => {
-        // console.log(event);
-        // if(event.user === brianUserId) {
-        //     const res = await rtm.sendMessage(`I see you typing Brian`, event.channel);
-        //     console.log('message sent: ', res.ts);
-        // }
-    });
 
     rtm.on('message', async (event) => {
         const {text, channel, user} = event;
@@ -45,14 +38,6 @@ module.exports.init = function slackClient(token, logLevel) {
         if(witResponse.entities.intent && witResponse.entities.intent[0].confidence > 0.6 && witResponse.entities.intent[0].value === 'insult') {
             responseText = `Well, that's not nice, ${userFirstName}.`;
         }
-
-        // if(witResponse.entities.sentiment && 
-        //     witResponse.entities.sentiment[0].confidence > 0.7 && 
-        //     witResponse.entities.sentiment[0].value === 'negative' && 
-        //     (witResponse.entities.contact[0].value === 'thomas' || 
-        //     witResponse.entities.contact[0].value === 'tom')) {
-        //     responseText = `Don't talk about my creator that way ${userFirstName}. You wouldn't like me when I'm angry`;
-        // }
 
         if(!responseText && witResponse.entities.sentiment && witResponse.entities.sentiment[0].confidence > 0.7 && witResponse.entities.sentiment[0].value === 'negative') {
             responseText = `I hear you. Sometimes life is hard`;

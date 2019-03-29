@@ -6,10 +6,9 @@ const http = require('http');
 
 const server = http.createServer(service);
 
-const slackToken = 'xoxb-194424426577-594312666919-lFw1CfRqrmodx5e6FagKJuwb';
 const slackLogLevel = 'debug';
 
-const rtm = slackClient.init(slackToken, slackLogLevel);
+const rtm = slackClient.init(process.env.SLACK_BOT_KEY, slackLogLevel);
 rtm.start()
   .catch(console.error);
 
@@ -18,5 +17,5 @@ rtm.on('ready', () => {
 });
 
 server.on('listening', () => {
-    console.log(`Iris is listening on ${server.address().port} in ${service.get('env')} mode`);
+    console.log(`Joker Bot is listening on ${server.address().port} in ${service.get('env')} mode`);
 });
