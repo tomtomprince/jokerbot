@@ -2,52 +2,53 @@
 require('dotenv').config();
 
 const { RTMClient } = require('@slack/rtm-api');
-const { WebClient, ErrorCode } = require('@slack/web-api');
+const { WebClient } = require('@slack/web-api');
+const joker = require('./joker');
 
-const brianUserId = 'U5RPJQ1FY';
-const tomUserId = 'U5R2JKMHB';
+/**
+ * @typedef {Object} MessageAnalysis
+ * @property {MessageAnalysis} analysis
+ * @property {string} author
+ * @property {string} text
+ */
+const Message = {
+    analysis: '',
+    authorName: '',
+    text: '',
+};
 
-const {Wit, log} = require('node-wit');
+function createUserMessage({userInfo, messageAnalysis, text}) {
+    const userMessage = Object.create(Message);
+    userMessage.analysis = messageAnalysis;
+    userMessage.authorName = userInfo.user.profile.first_name;
+    userMessage.text = text;
+    return userMessage;
+}
 
-const client = new Wit({
-  accessToken: process.env.WIT_TOKEN,
-  logger: new log.Logger(log.DEBUG) // optional
-});
+module.exports.init = function slackClient({
+    messageProcessor,
+    shouldLog,
+    token, 
+}) {
+    const logLevel = shouldLog ? 'debug' : null;
 
-module.exports.init = function slackClient(token, logLevel) {
     const rtm = new RTMClient(token, {logLevel});
     const web = new WebClient(token);
 
     rtm.on('message', async (event) => {
         const {text, channel, user} = event;
+        
+        if(!text || !text.includes('UHG96KLT1')) {
+            return;
+        }
         await rtm.sendTyping(channel);
-        // Send content to wai.ai
-        const witResponse = await client.message(text.toLowerCase(), {});
         const userInfo = await web.users.info({ user });
-        const userFirstName = userInfo.user.profile.first_name;
-        console.log('user', userInfo.user);
-        let responseText = null;
-        if(witResponse.entities.greetings && witResponse.entities.greetings[0].confidence > 0.8) {
-            responseText = `Hello ${userFirstName}`;
-        }
+        /** @type MessageAnalysis */
+        const messageAnalysis = await messageProcessor.process(text);
+        /** @type Message */
+        const userMessage = createUserMessage({userInfo, messageAnalysis, text});
+        let responseText = joker.getResponse(userMessage);
 
-        if(witResponse.entities.bye && witResponse.entities.bye[0].confidence > 0.8) {
-            responseText = `Goodbye ${userFirstName}`;
-        }
-
-        if(witResponse.entities.intent && witResponse.entities.intent[0].confidence > 0.6 && witResponse.entities.intent[0].value === 'insult') {
-            responseText = `Well, that's not nice, ${userFirstName}.`;
-        }
-
-        if(!responseText && witResponse.entities.sentiment && witResponse.entities.sentiment[0].confidence > 0.7 && witResponse.entities.sentiment[0].value === 'negative') {
-            responseText = `I hear you. Sometimes life is hard`;
-        }
-
-        if(!responseText && witResponse.entities.sentiment && witResponse.entities.sentiment[0].confidence > 0.7 && witResponse.entities.sentiment[0].value === 'positive') {
-            responseText = `I'm glad you're having a good day. Fuck you.`;
-        }
-
-        // Reply
         if(responseText) {
             const res = await rtm.sendMessage(responseText, channel);
             console.log('message sent: ', res.ts);
