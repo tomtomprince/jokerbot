@@ -1,5 +1,9 @@
+/**
+ * @param {Message} message 
+ * @return {string}
+ */
 function getResponse(message) {
-    return `You have these rules, and you think they'll save you.`;
+    return `I have given a name to my pain... and it is Batman.`;
 }
 
 module.exports = {
