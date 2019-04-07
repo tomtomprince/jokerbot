@@ -5,17 +5,7 @@ const { RTMClient } = require('@slack/rtm-api');
 const { WebClient } = require('@slack/web-api');
 const joker = require('../joker');
 
-/**
- * @typedef {Object} Message
- * @property {MessageAnalysis} analysis
- * @property {string} author
- * @property {string} text
- */
-const Message = {
-    analysis: null,
-    authorName: '',
-    text: '',
-};
+const { Message } = require('../message');
 
 function createUserMessage({userInfo, messageAnalysis, text}) {
     const userMessage = Object.create(Message);
@@ -38,14 +28,15 @@ module.exports.init = function slackClient({
     rtm.on('message', async (event) => {
         const {text, channel, user} = event;
         
+        // Only respond to messages addressing bot.
+        // TODO: Get bot id dynamically
         if(!text || !text.includes('UHG96KLT1')) {
             return;
         }
+
         rtm.sendTyping(channel);
         const userInfo = await web.users.info({ user });
-        /** @type MessageAnalysis */
         const messageAnalysis = await messageProcessor.process(text);
-        /** @type Message */
         const userMessage = createUserMessage({userInfo, messageAnalysis, text});
         let responseText = joker.getResponse(userMessage);
 
@@ -53,5 +44,6 @@ module.exports.init = function slackClient({
             rtm.sendMessage(responseText, channel);
         }
     });
+    
     return rtm;
 };

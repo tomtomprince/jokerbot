@@ -2,10 +2,12 @@
 //#region DEPENDENCIES
 const {Wit, log} = require('node-wit');
 const {INTENTS, SENTIMENTS} = require('../intents/constants.js');
-const MessageAnalysis = require('./MessageAnalysis');
+const {MessageAnalysis} = require('../message');
 //#endregion
 
 let client = null;
+
+// ADD WIT_TO_SENTIMENTS and WIT_TO_INTENTS map
 
 async function process(messageText) {
     const witResponse = await client.message(messageText.toLowerCase(), {});
@@ -17,6 +19,11 @@ async function process(messageText) {
     return messageAnalysis;
 }
 
+// This is a bug... neutral can have high confidence I believe
+// This means that a confident neutral will return as positive
+// Instead get most confident value and if it's a certain amount
+// return the result from SENTIMENTS
+// otherwise return SENTIMENTS.NEUTRAL
 function getSentiment(sentiment) {
     if(sentiment && sentiment[0].confidence > 0.7) {
         return sentiment[0].value === 'negative' ? SENTIMENTS.NEGATIVE : SENTIMENTS.POSITIVE;

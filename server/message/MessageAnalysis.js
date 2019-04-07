@@ -1,4 +1,4 @@
-const {INTENTS, SENTIMENTS} = require('../intents/constants.js');
+const { INTENTS, SENTIMENTS } = require('../intents/constants');
 
 /**
  * @typedef {Object} MessageAnalysis

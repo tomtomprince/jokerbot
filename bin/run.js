@@ -4,8 +4,8 @@ require('dotenv').config();
 const http = require('http');
 
 const service = require('../server/service');
-const slackClient = require('../server/slackClient');
-const witClient = require('../server/message-processor');
+const slackClient = require('../server/slack-client');
+const witClient = require('../server/wit-client');
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const port = process.env.PORT || 3000;

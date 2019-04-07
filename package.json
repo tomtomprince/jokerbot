@@ -1,8 +1,8 @@
 {
-  "name": "speech",
+  "name": "joker-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bin/run.js",
   "scripts": {
     "start": "NODE_ENV=development nodemon bin/run.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,15 +11,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@slack/events-api": "^2.2.0",
-    "@slack/rtm-api": "^5.0.0",
-    "@slack/web-api": "^5.0.0",
-    "dotenv": "^7.0.0",
+    "@slack/events-api": "2.2.0",
+    "@slack/rtm-api": "5.0.0",
+    "@slack/web-api": "5.0.0",
+    "dotenv": "7.0.0",
     "express": "4.16.4",
-    "node-wit": "5.0.0",
-    "socket.io": "2.2.0"
+    "node-wit": "5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "nodemon": "1.18.10"
+  },
+  "engines" : { 
+    "node" : ">=10.1.0" 
   }
 }

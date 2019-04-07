@@ -1,4 +1,4 @@
-const {INTENTS} = require('../intents/constants');
+const { INTENTS } = require('../intents/constants');
 
 function getResponse(message) {
     let intentService = null;
