@@ -1,14 +1,13 @@
 'use strict';
 //#region DEPENDENCIES
-const {Wit, log} = require('node-wit');
-const {INTENTS, SENTIMENTS} = require('../intents/constants.js');
-const {MessageAnalysis} = require('../message');
+const { Wit, log } = require('node-wit');
+const { INTENTS, SENTIMENTS } = require('../intents/constants.js');
+const { MessageAnalysis } = require('../message');
 //#endregion
 
 let client = null;
 
 // ADD WIT_TO_SENTIMENTS and WIT_TO_INTENTS map
-
 async function process(messageText) {
     const witResponse = await client.message(messageText.toLowerCase(), {});
     /** @type MessageAnalysis */
